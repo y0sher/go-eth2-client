@@ -60,6 +60,7 @@ func (s *Service) Proposal(ctx context.Context,
 		return nil, errors.Wrap(err, "failed to request beacon block proposal")
 	}
 
+	s.log.Debug().Msg("NonBlindedBlockRequest: unmarhshaling")
 	var response *api.Response[*api.VersionedProposal]
 	switch httpResponse.contentType {
 	case ContentTypeSSZ:
@@ -72,6 +73,7 @@ func (s *Service) Proposal(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+	s.log.Debug().Msg("NonBlindedBlockRequest: unmarhshaled")
 
 	// Ensure the data returned to us is as expected given our input.
 	blockSlot, err := response.Data.Slot()
@@ -102,6 +104,7 @@ func (s *Service) Proposal(ctx context.Context,
 		}
 	}
 
+	s.log.Debug().Msg("NonBlindedBlockRequest: returning")
 	return response, nil
 }
 

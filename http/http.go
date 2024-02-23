@@ -243,6 +243,9 @@ func (s *Service) get(ctx context.Context, endpoint string, opts *api.CommonOpts
 	}
 	span.AddEvent("Sending request")
 
+	if strings.Contains(endpoint, "eth/v2/validator/blocks") {
+		log.Debug().Msg("NonBlindedBlockRequest: HTTP requesting")
+	}
 	resp, err := s.client.Do(req)
 	if err != nil {
 		span.RecordError(errors.New("Request failed"))
@@ -252,6 +255,9 @@ func (s *Service) get(ctx context.Context, endpoint string, opts *api.CommonOpts
 	}
 	defer resp.Body.Close()
 	log = log.With().Int("status_code", resp.StatusCode).Logger()
+	if strings.Contains(endpoint, "eth/v2/validator/blocks") {
+		log.Debug().Msg("NonBlindedBlockRequest: HTTP requested")
+	}
 
 	res := &httpResponse{
 		statusCode: resp.StatusCode,
@@ -271,12 +277,18 @@ func (s *Service) get(ctx context.Context, endpoint string, opts *api.CommonOpts
 	// require the calling function to be aware that it needs to clode the body
 	// once it is done with it.  To avoid that complexity, we read here and store the
 	// body as a byte array.
+	if strings.Contains(endpoint, "eth/v2/validator/blocks") {
+		log.Debug().Msg("NonBlindedBlockRequest: HTTP reading")
+	}
 	res.body, err = io.ReadAll(resp.Body)
 	if err != nil {
 		span.RecordError(err)
 		log.Warn().Err(err).Msg("Failed to read body")
 
 		return nil, errors.Wrap(err, "failed to read body")
+	}
+	if strings.Contains(endpoint, "eth/v2/validator/blocks") {
+		log.Debug().Msg("NonBlindedBlockRequest: HTTP read")
 	}
 
 	statusFamily := resp.StatusCode / 100
@@ -306,6 +318,10 @@ func (s *Service) get(ctx context.Context, endpoint string, opts *api.CommonOpts
 	}
 
 	s.monitorGetComplete(ctx, url.Path, "succeeded")
+
+	if strings.Contains(endpoint, "eth/v2/validator/blocks") {
+		log.Debug().Msg("NonBlindedBlockRequest: HTTP returning")
+	}
 
 	return res, nil
 }
