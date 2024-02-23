@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/attestantio/go-eth2-client/api"
 	"github.com/attestantio/go-eth2-client/spec"
@@ -283,13 +284,44 @@ func (s *Service) get(ctx context.Context, endpoint string, opts *api.CommonOpts
 	if strings.Contains(endpoint, "eth/v2/validator/blocks") {
 		log.Debug().Msg("NonBlindedBlockRequest: HTTP reading")
 	}
-	res.body, err = io.ReadAll(resp.Body)
+
+	// res.body, err = io.ReadAll(resp.Body)
+	// if err != nil {
+	// 	span.RecordError(err)
+	// 	log.Warn().Err(err).Msg("Failed to read body")
+
+	// 	return nil, errors.Wrap(err, "failed to read body")
+	// }
+
+	// Instead of reading all immediately, read 1 byte to measure the time-to-first-byte
+	// and then read the rest.
+	buf := make([]byte, 1)
+	start := time.Now()
+	n, err := resp.Body.Read(buf)
+	if err != nil {
+		span.RecordError(err)
+		log.Warn().Err(err).Msg("Failed to read first byte")
+
+		return nil, errors.Wrap(err, "failed to read first byte")
+	}
+	if n != 1 {
+		span.RecordError(errors.New("First byte read was not 1 byte"))
+		log.Warn().Msg("First byte read was not 1 byte")
+
+		return nil, errors.New("First byte read was not 1 byte")
+	}
+	log = log.With().Str("time-to-first-byte", time.Since(start).String()).Logger()
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		span.RecordError(err)
 		log.Warn().Err(err).Msg("Failed to read body")
 
 		return nil, errors.Wrap(err, "failed to read body")
 	}
+	res.body = append(buf, body...)
+	log = log.With().Int("time-to-all-bytes", len(res.body)).Logger()
+	log = log.With().Int("body-length", len(res.body)).Logger()
+
 	if strings.Contains(endpoint, "eth/v2/validator/blocks") {
 		log.Debug().Msg("NonBlindedBlockRequest: HTTP read")
 	}
