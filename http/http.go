@@ -319,7 +319,7 @@ func (s *Service) get(ctx context.Context, endpoint string, opts *api.CommonOpts
 		return nil, errors.Wrap(err, "failed to read body")
 	}
 	res.body = append(buf, body...)
-	log = log.With().Int("time-to-all-bytes", len(res.body)).Logger()
+	log = log.With().Str("time-to-all-bytes", time.Since(start).String()).Logger()
 	log = log.With().Int("body-length", len(res.body)).Logger()
 
 	if strings.Contains(endpoint, "eth/v2/validator/blocks") {
