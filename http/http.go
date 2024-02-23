@@ -241,6 +241,7 @@ func (s *Service) get(ctx context.Context, endpoint string, opts *api.CommonOpts
 		// Prefer SSZ, JSON if not.
 		req.Header.Set("Accept", "application/octet-stream;q=1,application/json;q=0.9")
 	}
+	log = log.With().Str("accept", req.Header.Get("Accept")).Logger()
 	span.AddEvent("Sending request")
 
 	if strings.Contains(endpoint, "eth/v2/validator/blocks") {
@@ -255,6 +256,8 @@ func (s *Service) get(ctx context.Context, endpoint string, opts *api.CommonOpts
 	}
 	defer resp.Body.Close()
 	log = log.With().Int("status_code", resp.StatusCode).Logger()
+	log = log.With().Str("raw-content-type", resp.Header.Get("Content-Type")).Logger()
+	log = log.With().Str("content-length", resp.Header.Get("Content-Length")).Logger()
 	if strings.Contains(endpoint, "eth/v2/validator/blocks") {
 		log.Debug().Msg("NonBlindedBlockRequest: HTTP requested")
 	}
@@ -311,6 +314,7 @@ func (s *Service) get(ctx context.Context, endpoint string, opts *api.CommonOpts
 		log.Debug().Err(err).Msg("Failed to obtain content type; assuming JSON")
 		res.contentType = ContentTypeJSON
 	}
+	log = log.With().Str("content-type", res.contentType.String()).Logger()
 	span.SetAttributes(attribute.String("content-type", res.contentType.String()))
 
 	if err := populateConsensusVersion(res, resp); err != nil {
