@@ -286,7 +286,7 @@ type BlindedProposalProvider interface {
 // V3ProposalProvider is the interface for providing v3 beacon block proposals.
 type V3ProposalProvider interface {
 	// BlindedProposal fetches a blinded proposed beacon block for signing.
-	V3Proposal(ctx context.Context, opts *api.V3ProposalOpts) (*api.Response[*api.V3ProposalOpts], error)
+	V3Proposal(ctx context.Context, opts *api.V3ProposalOpts) (*api.Response[*api.VersionedV3Proposal], error)
 }
 
 // BlindedBeaconBlockSubmitter is the interface for submitting blinded beacon blocks.

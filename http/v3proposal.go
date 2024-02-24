@@ -31,8 +31,8 @@ import (
 	"go.opentelemetry.io/otel"
 )
 
-// ProposalV3 fetches a proposal for signing. V3 supports both blinded and non blinded proposals.
-func (s *Service) ProposalV3(ctx context.Context,
+// V3Proposal fetches a proposal for signing. V3 supports both blinded and non blinded proposals.
+func (s *Service) V3Proposal(ctx context.Context,
 	opts *api.V3ProposalOpts,
 ) (
 	*api.Response[*api.VersionedV3Proposal],
