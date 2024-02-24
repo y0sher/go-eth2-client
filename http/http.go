@@ -212,6 +212,11 @@ func (s *Service) get(ctx context.Context, endpoint string, opts *api.CommonOpts
 	ctx, span := otel.Tracer("attestantio.go-eth2-client.http").Start(ctx, "get2")
 	defer span.End()
 
+	var proposalDebugging bool
+	if strings.Contains(endpoint, "eth/v2/validator/blocks") || strings.Contains(endpoint, "eth/v3/validator/blocks") {
+		proposalDebugging = true
+	}
+
 	// #nosec G404
 	log := s.log.With().Str("id", fmt.Sprintf("%02x", rand.Int31())).Str("address", s.address).Str("endpoint", endpoint).Logger()
 	log.Trace().Msg("GET request")
@@ -245,8 +250,8 @@ func (s *Service) get(ctx context.Context, endpoint string, opts *api.CommonOpts
 	log = log.With().Str("accept", req.Header.Get("Accept")).Logger()
 	span.AddEvent("Sending request")
 
-	if strings.Contains(endpoint, "eth/v2/validator/blocks") {
-		log.Debug().Msg("NonBlindedBlockRequest: HTTP requesting")
+	if proposalDebugging {
+		log.Debug().Msg("BlockProposalRequestDebug: HTTP requesting")
 	}
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -259,8 +264,8 @@ func (s *Service) get(ctx context.Context, endpoint string, opts *api.CommonOpts
 	log = log.With().Int("status_code", resp.StatusCode).Logger()
 	log = log.With().Str("raw-content-type", resp.Header.Get("Content-Type")).Logger()
 	log = log.With().Str("content-length", resp.Header.Get("Content-Length")).Logger()
-	if strings.Contains(endpoint, "eth/v2/validator/blocks") {
-		log.Debug().Msg("NonBlindedBlockRequest: HTTP requested")
+	if proposalDebugging {
+		log.Debug().Msg("BlockProposalRequestDebug: HTTP requested")
 	}
 
 	res := &httpResponse{
@@ -281,8 +286,8 @@ func (s *Service) get(ctx context.Context, endpoint string, opts *api.CommonOpts
 	// require the calling function to be aware that it needs to clode the body
 	// once it is done with it.  To avoid that complexity, we read here and store the
 	// body as a byte array.
-	if strings.Contains(endpoint, "eth/v2/validator/blocks") {
-		log.Debug().Msg("NonBlindedBlockRequest: HTTP reading")
+	if proposalDebugging {
+		log.Debug().Msg("BlockProposalRequestDebug: HTTP reading")
 	}
 
 	// res.body, err = io.ReadAll(resp.Body)
@@ -322,8 +327,8 @@ func (s *Service) get(ctx context.Context, endpoint string, opts *api.CommonOpts
 	log = log.With().Str("time-to-all-bytes", time.Since(start).String()).Logger()
 	log = log.With().Int("body-length", len(res.body)).Logger()
 
-	if strings.Contains(endpoint, "eth/v2/validator/blocks") {
-		log.Debug().Msg("NonBlindedBlockRequest: HTTP read")
+	if proposalDebugging {
+		log.Debug().Msg("BlockProposalRequestDebug: HTTP read")
 	}
 
 	statusFamily := resp.StatusCode / 100
@@ -355,8 +360,8 @@ func (s *Service) get(ctx context.Context, endpoint string, opts *api.CommonOpts
 
 	s.monitorGetComplete(ctx, url.Path, "succeeded")
 
-	if strings.Contains(endpoint, "eth/v2/validator/blocks") {
-		log.Debug().Msg("NonBlindedBlockRequest: HTTP returning")
+	if proposalDebugging {
+		log.Debug().Msg("BlockProposalRequestDebug: HTTP returning")
 	}
 
 	return res, nil
