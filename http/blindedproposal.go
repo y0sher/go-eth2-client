@@ -80,7 +80,7 @@ func (s *Service) BlindedProposal(ctx context.Context,
 		return nil, errors.New("blinded beacon block proposal not for requested slot")
 	}
 
-	// Only check the RANDAO reveal and graffiti if we are not connected to DVT middleware,
+	// Only check the RANDAO reveal if we are not connected to DVT middleware,
 	// as the returned values will be decided by the middleware.
 	if !s.connectedToDVTMiddleware {
 		blockRandaoReveal, err := response.Data.RandaoReveal()
@@ -89,14 +89,6 @@ func (s *Service) BlindedProposal(ctx context.Context,
 		}
 		if !bytes.Equal(blockRandaoReveal[:], opts.RandaoReveal[:]) {
 			return nil, fmt.Errorf("blinded beacon block proposal has RANDAO reveal %#x; expected %#x", blockRandaoReveal[:], opts.RandaoReveal[:])
-		}
-
-		blockGraffiti, err := response.Data.Graffiti()
-		if err != nil {
-			return nil, err
-		}
-		if !bytes.Equal(blockGraffiti[:], opts.Graffiti[:]) {
-			return nil, fmt.Errorf("blinded beacon block proposal has graffiti %#x; expected %#x", blockGraffiti[:], opts.Graffiti[:])
 		}
 	}
 
